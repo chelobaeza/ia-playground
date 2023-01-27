@@ -1,0 +1,169 @@
+importante mantener la exploracion alta para que la ejecucion no se corte por no tener aprendizaje
+
+investigo en el ambiente como especifica que Termino pero que a su vez fue ganamos..
+esto es necesario tenerlo en cuenta para saber cuando nuestro aprendizaje es real y util
+    Episode End
+    The episode ends if any one of the following occurs:
+
+    Termination: Pole Angle is greater than ±12°
+
+    Termination: Cart Position is greater than ±2.4 (center of the cart reaches the edge of the display)
+
+    Truncation: Episode length is greater than 500 (200 for v0)
+
+investigo doc del ambiente para entender como funcionan las acciones y que consecuencia tienen.
+con esto logro entender que las acciones dependen del angulo en que se encuentre el palo el cual influye en el centro de masa.
+con eso aprendido, modifico el codigo para obtener observar el angulo y tomar decisiones sobre las acciones
+
+
+tuve problemas en el metodo que decide si dejo de aprender donde me vaciaba el Q porque estaba usando mal una funcion para hacer la diferencia
+entre un Q anterior y uno nuevo, para luego quedarme con el maximo absoluto y compararlo con la precision establecida
+
+pruebo modificar la probabilidad de exploracion y veo que se comporta mucho mejor cuando explora mas de lo que explota.. estara bien esto ?
+agrego al monitor variables para contar cuantos exploit y explore realiza
+
+pruebo con explorar al 100% y a veces termina bastante rapido lo que me daba la idea de que ya no tiene mas nada para aprender
+agrego al monitor para que guarde el maximo de pasos de los episodios generados (segun el ambiente corta a los 500)
+
+lo anterior me hace sospechar que los datos que tengo no son suficientemente utiles o precisos
+
+{'is_q_loaded_from_file': True, 'start_time': 1669859882.5079637, 'exploit_policy_count': 89, 'episode_step_count': 0, 'explore_policy_count': 93, 'max_episode_step_count': 74, 'episode_count': 5, 'is_done_learning': True, 'end_time': 1669859886.7742229}
+execution time: 4.26625919342041
+{'is_q_loaded_from_file': True, 'start_time': 1669859942.9633796, 'exploit_policy_count': 149, 'episode_step_count': 0, 'explore_policy_count': 129, 'max_episode_step_count': 72, 'episode_count': 7, 'is_done_learning': True, 'end_time': 1669859949.2121854}
+execution time: 6.24880576133728
+{'alpha': 0.1, 'gamma': 0.1, 'learning_precision': 1e-06, 'is_q_loaded_from_file': True, 'start_time': 1669861195.9971228, 'exploit_policy_count': 1072, 'episode_step_count': 0, 'explore_policy_count': 2488, 'max_episode_step_count': 97, 'episode_count': 118, 'is_done_learning': True, 'end_time': 1669861272.3080175}
+execution time: 76.31089472770691
+
+varias veces no importa los parametros , terminaba super rapido diciendo que ya habia aprendido.
+asique tome la opcion de agrandar las dimensiones del Q, y por supuesto las beans para que tenga informacion mas detalladaen lugar de 0/1 por cada
+observacion, la ultima dimension si se deja en 2 ya que es izquierda o derecha
+
+{'alpha': 0.2, 'gamma': 0.8, 'learning_precision': 1e-06, 'is_q_loaded_from_file': True, 'start_time': 1669863989.8161283, 'exploit_policy_count': 6626, 'episode_step_count': 0, 'explore_policy_count': 15627, 'max_episode_step_count': 87, 'episode_count': 1040}
+{'alpha': 0.2, 'gamma': 0.8, 'learning_precision': 1e-06, 'is_q_loaded_from_file': True, 'start_time': 1669863989.8161283, 'exploit_policy_count': 6667, 'episode_step_count': 0, 'explore_policy_count': 15734, 'max_episode_step_count': 148, 'episode_count': 1041}
+se nota un cambio importante, se observa como el carrito se va hacia los costados mantentiendo el palo cosa que antes no pasaba.
+y aumento el max_episode_step_count, con lo cual esta teniendo episodios mas largos o en otras palabras manteniendo el palo mas tiempo en equilibrio
+
+{'alpha': 0.2, 'gamma': 0.8, 'learning_precision': 1e-06, 'is_q_loaded_from_file': True, 'start_time': 1669863989.8161283, 'exploit_policy_count': 445935, 'episode_step_count': 30, 'explore_policy_count': 1044794, 'max_episode_step_count': 167, 'episode_count': 71129, 'end_time': 1669896074.058158}
+execution time: 32084.2420296669
+
+cambio a exploracion = 0.37 y enseguida veo que el max se empieza a superar bastante rapido
+{'alpha': 0.2, 'gamma': 0.8, 'learning_precision': 1e-06, 'is_q_loaded_from_file': True, 'start_time': 1669897664.0074327, 'explore_policy_count': 13218, 'episode_step_count': 44, 'exploit_policy_count': 17239, 'episode_count': 1539, 'max_episode_step_count': 120, 'end_time': 1669898319.585522}
+execution time: 655.5780892372131
+
+hago un ajuste para poder ver la cantidad de pasos que tiene cada episodio en lugar de solo ver el maximo de todos los episodios.
+y observo que la mayoria de los episodios son cortos.
+{'alpha': 0.2, 'gamma': 0.8, 'learning_precision': 1e-06, 'is_q_loaded_from_file': True, 'start_time': 1669898353.3602686, 'exploit_policy_count': 23008, 'episode_step_count': 15, 'explore_policy_count': 7112, 'episode_count': 1266, 'sum_episode_step_count': 30104, 'average_episode_step_count': 23.778830963665087, 'max_episode_step_count': 113, 'end_time': 1669899000.9572136}
+execution time: 647.5969450473785
+
+hago otro ajuste para resetear la cantidad de exploits y explores por episodio y no de forma general
+
+
+{'alpha': 0.2, 'gamma': 0.8, 'learning_precision': 1e-06, 'is_q_loaded_from_file': True, 'start_time': 1669899047.0561728, 'exploit_policy_count': 78, 'episode_step_count': 103, 'explore_policy_count': 25, 'episode_count': 1065, 'sum_episode_step_count': 22408, 'average_episode_step_count': 21.06015037593985, 'max_episode_step_count': 100}
+{'alpha': 0.2, 'gamma': 0.8, 'learning_precision': 1e-06, 'is_q_loaded_from_file': True, 'start_time': 1669899047.0561728, 'exploit_policy_count': 9, 'episode_step_count': 13, 'explore_policy_count': 4, 'episode_count': 1066, 'sum_episode_step_count': 22511, 'average_episode_step_count': 21.137089201877934, 'max_episode_step_count': 103}
+
+{'alpha': 0.2, 'gamma': 0.8, 'learning_precision': 1e-06, 'is_q_loaded_from_file': True, 'start_time': 1669899047.0561728, 'exploit_policy_count': 24, 'episode_step_count': 34, 'explore_policy_count': 11, 'episode_count': 3720, 'sum_episode_step_count': 82864, 'average_episode_step_count': 22.2752688172043, 'max_episode_step_count': 117, 'end_time': 1669900834.352215}
+execution time: 1787.2960422039032
+
+{'alpha': 0.2, 'gamma': 0.8, 'learning_precision': 1e-06, 'is_q_loaded_from_file': True, 'start_time': 1669902968.1220477, 'exploit_policy_count': 15, 'episode_step_count': 19, 'explore_policy_count': 5, 'episode_count': 1128, 'sum_episode_step_count': 25969, 'average_episode_step_count': 23.022163120567377, 'max_episode_step_count': 123, 'end_time': 1669903524.312064}
+execution time: 556.1900162696838
+con un explore con menos probabilidad el promedio de steps aumenta
+
+{'alpha': 0.2, 'gamma': 0.8, 'learning_precision': 1e-06, 'is_q_loaded_from_file': True, 'start_time': 1669903657.839221, 'explore_policy_count': 0, 'episode_step_count': 5, 'exploit_policy_count': 6, 'episode_count': 43514, 'sum_episode_step_count': 986629, 'average_episode_step_count': 22.67382911246955, 'max_episode_step_count': 178, 'end_time': 1669924838.3262742}
+execution time: 21180.4870531559
+q_learnings 0-24 dim 11  ^^
+
+{'alpha': 0.2, 'gamma': 0.8, 'learning_precision': 1e-06, 'is_q_loaded_from_file': True, 'start_time': 1669928426.2453372, 'exploit_policy_count': 20, 'episode_step_count': 21, 'explore_policy_count': 2, 'episode_count': 16589, 'sum_episode_step_count': 372992, 'average_episode_step_count': 22.484296823196093, 'max_episode_step_count': 163, 'end_time': 1669936414.692928}
+execution time: 7988.447590827942
+angle dim 20
+
+aumento la dimension de self.Q = np.random.random((11,51,101,51,2))
+{'alpha': 0.2, 'gamma': 0.8, 'learning_precision': 1e-06, 'start_time': 1669937130.9297779, 'explore_chance': 0.24, 'exploit_policy_count': 29, 'episode_step_count': 35, 'explore_policy_count': 7, 'episode_count': 8502, 'sum_episode_step_count': 220585, 'average_episode_step_count': 25.94507174782404, 'max_episode_step_count': 144, 'end_time': 1669942148.0937696}
+execution time: 5017.163991689682
+
+bajo el explore chance a 0.14
+{'alpha': 0.2, 'gamma': 0.8, 'learning_precision': 1e-06, 'is_q_loaded_from_file': True, 'start_time': 1669942592.5708652, 'explore_chance': 0.14, 'explore_policy_count': 0, 'episode_step_count': 0, 'exploit_policy_count': 1, 'episode_count': 118804, 'sum_episode_step_count': 3517095, 'average_episode_step_count': 29.6041799939396, 'max_episode_step_count': 225, 'end_time': 1670021810.3835053}
+execution time: 79217.81264019012
+
+
+intento aumentar las dimensiones y se me va al carajo todo
+apartir de aca arranco de 0
+
+    intento tambien ajustar los valores de los beans es decir que valores son mas importantes para mi (ej velocidad > 2 ya no me interesa)
+
+    le pongo reduccion de explore chance pero se me pasa a negativo, por eso le pongo tope
+    {'alpha': 0.12, 'gamma': 0.8, 'learning_precision': 1e-06, 'is_q_loaded_from_file': True, 'start_time': 1670038103.7781131, 'explore_chance': -9.999999990618245e-05, 'explore_policy_count': 0, 'max_pole_angular_velocity': 3.5914564, 'max_cart_velocity': 3.03485, 'episode_step_count': 66.0, 'episode_count': 20535, 'sum_episode_step_count': 551537.0, 'average_episode_step_count': 26.85969611376254, 'max_episode_step_count': 169.0, 'exploit_policy_count': 66}
+    execution time: 13030.934399366379
+
+    {'alpha': 0.12, 'gamma': 0.8, 'learning_precision': 1e-06, 'is_q_loaded_from_file': True, 'start_time': 1670062753.9172797, 'explore_chance': 0.009900000000049737, 'explore_policy_count': 0, 'max_cart_velocity': 3.631349, 'max_pole_angular_velocity': 3.204914, 'exploit_policy_count': 1, 'episode_step_count': 0, 'episode_count': 15261, 'sum_episode_step_count': 478696.0, 'average_episode_step_count': 31.36727606316755, 'max_episode_step_count': 163.0, 'end_time': 1670073903.9677327}
+    execution time: 11150.050452947617
+    arranco de nuevo desde .6 chance de explorar
+
+    parece que esta bajando muy rapido la chance de exploracion por eso subo el minimo de explore_chance para que siempre tenga algo de exploracion
+
+    tengo que optimizarlo para que en menos tiempo vea mas episodios
+        le saco el is_q_learning y lo cambio por una condicion de si el reward es < 500 simplemente para optimizarlo
+
+
+    {'alpha': 0.11, 'gamma': 0.9999, 'learning_precision': 1e-06, 'is_q_loaded_from_file': True, 'start_time': 1670076613.6820934, 'explore_chance': 0.04990000000002816, 'exploit_policy_count': 471, 'min_cart_velocity': -3.0667121, 'explore_policy_count': 29, 'episode_step_count': 500.0, 'episode_count': 7546, 'sum_episode_step_count': 329329.0, 'average_episode_step_count': 43.648641484426776, 'max_episode_step_count': 398.0, 'min_pole_angular_velocity': -3.2217643, 'success_episode_count': 1}
+    execution time: 7012.0056681633
+
+    {'alpha': 0.11, 'gamma': 0.9999, 'learning_precision': 1e-06, 'is_q_loaded_from_file': True, 'start_time': 1670087562.6257029, 'explore_chance': 0.05, 'exploit_policy_count': 103, 'min_cart_velocity': -1.9564315, 'min_pole_angular_velocity': -2.9370337, 'explore_policy_count': 0, 'episode_step_count': 103.0, 'episode_count': 92, 'sum_episode_step_count': 8482.0, 'average_episode_step_count': 93.20879120879121, 'max_episode_step_count': 433.0}
+    execution time: 190.11566996574402
+
+    se llega a la solucion de reward 500, se puede modificar para que siga aprendiendo hasta que llegue mas veces a este reward. pero podemos decir que todo hasta ahora 
+    es correcto y aprende.
+
+con 42k episodios se encontro la solucion (sin duda quisas no la mejor y le lleve su tiempo volver a encontrarla como la ultima recorrida)
+
+
+
+voy a tener que quitar y cambiar definitivamente
+def is_q_learning(self):
+    return np.count_nonzero(self.Q > self.learning_precision) > 0
+
+    np.count_nonzero(self.Q > 0.001)
+    79256787
+    np.count_nonzero(self.Q > 0.01)
+    78544262
+    np.count_nonzero(self.Q > 0.1)
+    71419460
+
+
+apesar de estar bastante avanzado y entrenado estoy viendo estos estados "iniciales" 
+sin explorar.
+    posibles problemas:
+        falta de exploracion
+        diemnsion de Q demasiado grande
+    {'alpha': 0.11, 'gamma': 0.9999, 'learning_precision': 1e-06, 'is_q_loaded_from_file': True, 'start_time': 1670103200.341554, 'explore_chance': 0.004999999999999601, 'start_episode_time': 1670107839.3935072, 'exploit_policy_count': 227, 'explore_policy_count': 1, 'episode_time': 4.70719575881958, 'episode_step_count': 228.0, 'average_episode_step_count': 111.3942115768463, 'max_episode_step_count': 500.0}
+    {'alpha': 0.11, 'gamma': 0.9999, 'learning_precision': 1e-06, 'is_q_loaded_from_file': True, 'start_time': 1670103200.341554, 'explore_chance': 0.004999999999999601, 'start_episode_time': 1670107844.100703, 'exploit_policy_count': 18, 'explore_policy_count': 0, 'episode_time': 0.39037275314331055, 'episode_step_count': 18.0, 'average_episode_step_count': 111.34763092269327, 'max_episode_step_count': 500.0}
+    {'alpha': 0.11, 'gamma': 0.9999, 'learning_precision': 1e-06, 'is_q_loaded_from_file': True, 'start_time': 1670103200.341554, 'explore_chance': 0.004999999999999601, 'start_episode_time': 1670107844.49158, 'exploit_policy_count': 260, 'explore_policy_count': 1, 'episode_time': 5.380599737167358, 'episode_step_count': 261.0, 'average_episode_step_count': 111.4222333000997, 'max_episode_step_count': 500.0}
+una posible solucion aca es definir una ventana de entrenamiento inicial antes de comenzar
+a reducir la exploracion. 
+o reducir la exploracion mas lentamente cuando el promedio se supere
+
+mas entrenamiento por aca
+{'alpha': 0.11, 'gamma': 0.9999, 'learning_precision': 1e-06, 'is_q_loaded_from_file': True, 'start_time': 1670103200.341554, 'explore_chance': 0.004999999999999601, 'start_episode_time': 1670122327.4861941, 'exploit_policy_count': 257, 'explore_policy_count': 1, 'episode_time': 5.327220916748047, 'episode_step_count': 258.0, 'average_episode_step_count': 117.43941326530613, 'max_episode_step_count': 500.0}
+Saving Q to file
+{'alpha': 0.11, 'gamma': 0.9999, 'learning_precision': 1e-06, 'is_q_loaded_from_file': True, 'start_time': 1670103200.341554, 'explore_chance': 0.004999999999999601, 'start_episode_time': 1670122332.813415, 'exploit_policy_count': 20, 'explore_policy_count': 0, 'episode_time': 5.327220916748047, 'episode_step_count': 0, 'average_episode_step_count': 117.43941326530613, 'max_episode_step_count': 500.0, 'end_time': 1670122333.9583879}
+execution time: 19133.616833925247
+
+{'alpha': 0.11, 'gamma': 0.9999, 'is_q_loaded_from_file': True, 'start_time': 1670168892.4473236, 'explore_chance': 0.004999999999999601, 'start_episode_time': 1670210514.224074, 'exploit_policy_count': 111, 'explore_policy_count': 1, 'episode_count': 16108, 'episode_time': 2.3242599964141846, 'episode_step_count': 112.0, 'average_episode_step_count': 123.93462875589769, 'max_episode_step_count': 500.0}
+Saving Q to file
+{'alpha': 0.11, 'gamma': 0.9999, 'is_q_loaded_from_file': True, 'start_time': 1670168892.4473236, 'explore_chance': 0.004999999999999601, 'start_episode_time': 1670210516.550334, 'exploit_policy_count': 41, 'explore_policy_count': 0, 'episode_count': 16108, 'episode_time': 2.3242599964141846, 'episode_step_count': 0, 'average_episode_step_count': 123.93462875589769, 'max_episode_step_count': 500.0, 'end_time': 1670210518.0680015}
+execution time: 41625.620677948
+
+
+demora en aprender ya que cada episodio demora mas a medida que aguanta mas, por lo que se hace mas lento
+
+
+
+{'alpha': 0.11, 'gamma': 0.9999, 'explore_chance': 0.004900000000093817, 'explore_policy_count': 0, 'episode_count': 31289, 'episode_step_count': 129.0, 'average_episode_step_count': 60.349515804276265, 'max_episode_step_count': 500.0, 'exploit_policy_count': 129}
+{'alpha': 0.11, 'gamma': 0.9999, 'explore_chance': 0.004900000000093817, 'explore_policy_count': 1, 'episode_count': 31290, 'episode_step_count': 353.0, 'average_episode_step_count': 60.35886864813039, 'max_episode_step_count': 500.0, 'exploit_policy_count': 352}
+{'alpha': 0.11, 'gamma': 0.9999, 'explore_chance': 0.004900000000093817, 'explore_policy_count': 1, 'episode_count': 31291, 'episode_step_count': 238.0, 'average_episode_step_count': 60.36454571602058, 'max_episode_step_count': 500.0, 'exploit_policy_count': 237}
+{'alpha': 0.11, 'gamma': 0.9999, 'explore_chance': 0.004900000000093817, 'explore_policy_count': 0, 'episode_count': 31292, 'episode_step_count': 113.0, 'average_episode_step_count': 60.36622778985044, 'max_episode_step_count': 500.0, 'exploit_policy_count': 113}
+{'alpha': 0.11, 'gamma': 0.9999, 'explore_chance': 0.004900000000093817, 'explore_policy_count': 0, 'episode_count': 31293, 'episode_step_count': 213.0, 'average_episode_step_count': 60.37110535902598, 'max_episode_step_count': 500.0, 'exploit_policy_count': 213}
+{'alpha': 0.11, 'gamma': 0.9999, 'explore_chance': 0.004900000000093817, 'explore_policy_count': 0, 'episode_count': 31294, 'episode_step_count': 196.0, 'average_episode_step_count': 60.37543938135106, 'max_episode_step_count': 500.0, 'exploit_policy_count': 196}
+{'alpha': 0.11, 'gamma': 0.9999, 'explore_chance': 0.004900000000093817, 'explore_policy_count': 0, 'episode_count': 31295, 'episode_step_count': 500.0, 'average_episode_step_count': 60.38948713852053, 'max_episode_step_count': 500.0, 'exploit_policy_count': 500}
+{'alpha': 0.11, 'gamma': 0.9999, 'explore_chance': 0.004900000000093817, 'explore_policy_count': 5, 'episode_count': 31296, 'episode_step_count': 500.0, 'average_episode_step_count': 60.40353399795501, 'max_episode_step_count': 500.0, 'exploit_policy_count': 495}
+{'alpha': 0.11, 'gamma': 0.9999, 'explore_chance': 0.004900000000093817, 'explore_policy_count': 0, 'episode_count': 31297, 'episode_step_count': 145.0, 'average_episode_step_count': 60.406237019522635, 'max_episode_step_count': 500.0, 'exploit_policy_count': 145}
+{'alpha': 0.11, 'gamma': 0.9999, 'explore_chance': 0.004900000000093817, 'explore_policy_count': 2, 'episode_count': 31298, 'episode_step_count': 500.0, 'average_episode_step_count': 60.420282446162695, 'max_episode_step_count': 500.0, 'exploit_policy_count': 498}
